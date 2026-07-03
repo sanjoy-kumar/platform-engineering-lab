@@ -39,7 +39,7 @@ docker build -t ci-cd-pipeline .
 ### Run ci-cd-pipeline 
 
 ```bash
-docker run -p 3000:3000 react-demo
+docker run -p 3000:3000 ci-cd-pipeline
 ```
 
 Visit:
@@ -47,4 +47,14 @@ Visit:
 ```bash
 http://localhost:3000
 ```
+
+### Create GitHub Repository
+
+Go to GitHub and create repository
+
+```bash
+ci-cd-pipeline
+```
+
+
 
