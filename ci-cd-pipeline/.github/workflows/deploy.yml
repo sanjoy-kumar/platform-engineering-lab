@@ -19,7 +19,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}     # The private key secret you saved earlier
           script: |
-            cd /home/ubuntu/platform-engineering-lab/ci-cd-pipeline
+            cd /home/ubuntu/platform-engineering-lab
             git pull origin main
             docker build -t react-app -f Dockerfile-prod .
             docker stop react-container || true
