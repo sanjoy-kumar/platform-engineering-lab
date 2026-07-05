@@ -15,11 +15,11 @@ jobs:
       - name: SSH and Deploy to EC2
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.EC2_HOST }}       # Your EC2 Public IP
+          host: ${{ secrets.EC2_HOST }}     
           username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}     # The private key secret you saved earlier
+          key: ${{ secrets.EC2_SSH_KEY }}     
           script: |
-            cd /home/ubuntu/platform-engineering-lab
+            cd /home/ubuntu/platform-engineering-lab/ci-cd-pipeline
             git pull origin main
             docker build -t react-app -f Dockerfile-prod .
             docker stop react-container || true
