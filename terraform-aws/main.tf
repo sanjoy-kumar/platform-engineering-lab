@@ -3,6 +3,13 @@ resource "aws_instance" "web_server" {
     ami = "ami-0e5497a77ef21b5ac"
     instance_type = var.instance_type
     vpc_security_group_ids = [ aws_security_group.web_sg.id ]
+    key_name = "openclaw-key"
+    
+    root_block_device {
+        volume_size = 30
+        volume_type = "gp3"
+        delete_on_termination = true
+    }
 
     tags  = {
         Name = "web-server"
