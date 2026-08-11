@@ -15,6 +15,12 @@ resource "aws_instance" "web_server" {
         Name = "web-server"
     }
 
+    user_data = <<EOF
+          #!/bin/bash
+          apt update -y
+          apt upgrade -y
+        EOF
+
 }
 
 
