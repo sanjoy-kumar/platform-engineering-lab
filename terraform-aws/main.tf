@@ -67,12 +67,9 @@ resource "aws_security_group" "web_sg" {
 
 
 # Define Custom VPC Infrastructure
-## - VPC & Internet Gateway:Creates an isolated virtual network (10.0.0.0/16) and attaches an Internet Gateway to enable public internet access.
-## - Public Subnets: Deploys two public subnets across different Availability Zones (us-east-2a and us-east-2b) for the ALB.
-## - Route Table: Maps 0.0.0.0/0 traffic from public subnets to the Internet Gateway.
-
-
-# 1. VPC
+# --- Start -----------
+## - 1. VPC & Internet Gateway:Creates an isolated virtual network (10.0.0.0/16) and attaches an Internet Gateway to enable public internet access.
+### 1.1 VPC
 
 resource "aws_vpc" "custom_vpc" {
     cidr_block = "10.0.0.0/16"
@@ -83,3 +80,17 @@ resource "aws_vpc" "custom_vpc" {
     }
 }
 
+### 1.2 Internat Gateway
+
+resource "aws_internet_gateway" "igw" {
+    vpc_id = aws_vpc.custom_vpc.id
+    tags = {
+        Name = "igw"
+    }
+}
+
+## 2. - Public Subnets: Deploys two public subnets across different Availability Zones (us-east-2a and us-east-2b) for the ALB.
+
+
+
+## - Route Table: Maps 0.0.0.0/0 traffic from public subnets to the Internet Gateway.
