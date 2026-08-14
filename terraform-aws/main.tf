@@ -135,4 +135,15 @@ resource "aws_route_table" "public_rt" {
 }
 
 
-### 3.2  
+### 3.2  Association
+
+resource "aws_route_table_association" "a" {
+    subnet_id = aws_subnet.public_subnet_1.id
+    route_table_id = aws_route_table.public_rt.id
+}
+
+resource "aws_route_table_association" "b" {
+    subnet_id = aws_subnet.public_subnet_2.id
+    route_table_id = aws_route_table.public_rt.id
+}
+
