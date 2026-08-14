@@ -90,7 +90,8 @@ resource "aws_internet_gateway" "igw" {
 }
 
 ## 2. - Public Subnets: Deploys two public subnets across different Availability Zones (us-east-2a and us-east-2b) for the ALB.
-### 2.1. Public Subnets (2 AZs for ALB compliance)
+
+### 2.1. Public Subnet 1 (AZ is us-east-2a)
 
 resource "aws_subnet" "public_subnet_1" {
     vpc_id = aws_vpc.custom_vpc.id
@@ -102,6 +103,8 @@ resource "aws_subnet" "public_subnet_1" {
     }
 }
 
+### 2.2. Public Subnet 2 (AZ is us-east-2b)
+
 resource "aws_subnet" "public_subnet_2" {
     vpc_id = aws_vpc.custom_vpc.id
     cidr_block = "10.0.2.0/24"
@@ -112,5 +115,24 @@ resource "aws_subnet" "public_subnet_2" {
     }
 }
 
-## - Route Table: Maps 0.0.0.0/0 traffic from public subnets to the Internet Gateway.
+## - 3. Route Table: Maps 0.0.0.0/0 traffic from public subnets to the Internet Gateway.
 
+
+### 3.1  Route Table
+
+resource "aws_route_table" "public_rt" {
+    vpc_id = aws_vpc.custom_vpc.id
+
+    route {
+        cidr_block = "0.0.0.0/0"
+        gateway_id = aws_internet_gateway.igw.id
+    }
+
+    tags = {
+            Name = "public-route-table"
+        }
+
+}
+
+
+### 3.2  
