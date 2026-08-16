@@ -1,29 +1,3 @@
-
-resource "aws_instance" "web_server" {
-    ami = "ami-0e5497a77ef21b5ac"
-    instance_type = var.instance_type
-    vpc_security_group_ids = [ aws_security_group.app_sg.id ]
-    key_name = "openclaw-key"
-    
-    root_block_device {
-        volume_size = 30
-        volume_type = "gp3"
-        delete_on_termination = true
-    }
-
-    tags  = {
-        Name = "web-server"
-    }
-
-    user_data = <<EOF
-          #!/bin/bash
-          apt update -y
-          apt upgrade -y
-        EOF
-
-}
-
-
 # Define Custom VPC Infrastructure
 
 # --- Start VPC Infrastructure -----------
@@ -146,7 +120,7 @@ resource "aws_security_group" "alb_sg" {
 
 ### 4.2 Security Group for EC2 / Auto Scaling Group
 
-resource "aws_security_group" "app_sg" {
+resource "aws_security_group" "web_sg" {
     name = "app-sg"
     description = "Allow HTTP and SSH traffic from ALB"
     vpc_id = aws_vpc.custom_vpc.id
@@ -174,4 +148,48 @@ resource "aws_security_group" "app_sg" {
     }
 
 }
+
+# 5.Convert aws_instance to aws_launch_template:
+### Prepare instance configuration for auto-scaling.
+### - Launch Template: Replaces standalone aws_instance so Auto Scaling can dynamically spawn copies.
+### - User Data: Base64-encoded user script running updates during launch.
+### - Storage & Keys: Keeps your 30GB gp3 root block configuration and openclaw-key.
+
+resource "aws_launch_template" "web_template" {
+  name_prefix   = "web-server-template-"
+  image_id      = "ami-0e5497a77ef21b5ac"
+  instance_type = var.instance_type
+  key_name      = "openclaw-key"
+
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
+
+  block_device_mappings {
+    device_name = "/dev/sda1"
+
+    ebs {
+      volume_size           = 30
+      volume_type           = "gp3"
+      delete_on_termination = true
+    }
+  }
+
+  user_data = base64encode(<<-EOF
+              #!/bin/bash
+              apt update -y
+              apt upgrade -y
+              apt install -y nginx
+              systemctl start nginx
+              systemctl enable nginx
+              EOF
+  )
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "web-server-asg"
+    }
+  }
+}
+
+
 
