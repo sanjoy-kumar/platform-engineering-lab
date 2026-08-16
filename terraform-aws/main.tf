@@ -2,7 +2,7 @@
 resource "aws_instance" "web_server" {
     ami = "ami-0e5497a77ef21b5ac"
     instance_type = var.instance_type
-    vpc_security_group_ids = [ aws_security_group.web_sg.id ]
+    vpc_security_group_ids = [ aws_security_group.app_sg.id ]
     key_name = "openclaw-key"
     
     root_block_device {
@@ -24,50 +24,10 @@ resource "aws_instance" "web_server" {
 }
 
 
-
-resource "aws_security_group" "web_sg" {
-    name = "web-sg"
-    description = "Allow SSH, HTTP and HTTPS traffic."
-
-    # SSH 
-    ingress {
-        from_port = 22
-        to_port = 22
-        protocol = "tcp"
-        cidr_blocks = [ "0.0.0.0/0" ]
-    }
-
-    # HTTP
-
-    ingress {
-        from_port = 80
-        to_port = 80
-        protocol = "tcp"
-        cidr_blocks = [ "0.0.0.0/0" ]
-    }
-
-    # HTTPS
-
-    ingress {
-        from_port = 443
-        to_port = 443
-        protocol = "tcp"
-        cidr_blocks = [ "0.0.0.0/0" ]
-    }
-
-
-    egress {
-        from_port = 0
-        to_port = 0
-        protocol = "-1"
-        cidr_blocks = [ "0.0.0.0/0" ]
-    }
-
-}
-
-
 # Define Custom VPC Infrastructure
-# --- Start -----------
+
+# --- Start VPC Infrastructure -----------
+
 ## - 1. VPC & Internet Gateway:Creates an isolated virtual network (10.0.0.0/16) and attaches an Internet Gateway to enable public internet access.
 ### 1.1 VPC
 
@@ -145,5 +105,73 @@ resource "aws_route_table_association" "a" {
 resource "aws_route_table_association" "b" {
     subnet_id = aws_subnet.public_subnet_2.id
     route_table_id = aws_route_table.public_rt.id
+}
+
+### --- End VPC Infrastructure -----------
+
+
+# Configure Tiered Security Groups
+
+### 4. Security Groups
+
+### 4.1 Security Group for Load Balancer
+
+resource "aws_security_group" "alb_sg" {
+    name = "alb-sg"
+    description = "Allow inbound HTTP/HTTPS traffice to ALB"
+    vpc_id = aws_vpc.custom_vpc.id
+
+    ingress {
+        from_port = 80
+        to_port = 80
+        protocol = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    ingress {
+        from_port = 443
+        to_port = 443
+        protocol = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    egress {
+        from_port = 0
+        to_port = 0
+        protocol = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+}
+
+### 4.2 Security Group for EC2 / Auto Scaling Group
+
+resource "aws_security_group" "app_sg" {
+    name = "app-sg"
+    description = "Allow HTTP and SSH traffic from ALB"
+    vpc_id = aws_vpc.custom_vpc.id
+
+    ingress {
+        from_port = 22
+        to_port = 22
+        protocol = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    # HTTP restricted to ALB security group
+    ingress {
+        from_port = 80
+        to_port = 80
+        protocol = "tcp"
+        security_groups = [aws_security_group.alb_sg.id]
+    }
+
+    egress {
+        from_port = 0
+        to_port = 0
+        protocol = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
 }
 
