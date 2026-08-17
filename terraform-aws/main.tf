@@ -218,3 +218,17 @@ resource "aws_lb_target_group" "web_tg" {
     }
 }
 
+### 6.2 Application Load Balancer
+
+resource "aws_alb" "web_alb" {
+    name = "web-alb"
+    internal = false
+    load_balancer_type = "application"
+    security_groups = [aws_security_group.alb_sg.id]
+    subnets = [aws_subnet.public_subnet_1.id, aws_subnet.public_subnet_2.id]
+
+    tags = {
+        Name = "web-alb"
+    }
+}
+
