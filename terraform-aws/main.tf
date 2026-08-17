@@ -193,3 +193,28 @@ resource "aws_launch_template" "web_template" {
 
 
 
+# 6. Create Application Load Balancer & Target Group:
+### Distribute traffic across instances.
+### - Target Group: Listens on port 80 and uses standard HTTP health checks to monitor EC2 instances.
+### - ALB: External-facing load balancer attached across both public subnets.
+### - Listener: Routes incoming port 80 requests to the target group.
+
+### 6.1 Target Group's health check
+
+resource "aws_lb_target_group" "web_tg" {
+    name = "web-target-group"
+    port = 80
+    protocol = "HTTP"
+    vpc_id = aws_vpc.custom_vpc.id
+
+    health_check {
+        path = "/"
+        protocol = "HTTP"
+        matcher = "200"
+        interval = 30
+        timeout = 5
+        healthy_threshold = 2
+        unhealthy_threshold = 2
+    }
+}
+
