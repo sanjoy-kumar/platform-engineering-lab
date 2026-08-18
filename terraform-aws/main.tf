@@ -246,3 +246,32 @@ resource "aws_lb_listener" "frontend" {
 
 }
 
+
+# 7. Configure Auto Scaling Group (ASG):
+### Automate instance provisioning and health management.
+### VPC Subnets: Distributes managed instances across both subnets.
+### Target Group Attachment: Registers new EC2 instances directly into aws_lb_target_group.web_tg.
+### Health Check Type: Uses ELB checks so instance failures identified by the ALB trigger replacement instances automatically.
+
+resource "aws_autoscaling_group" "web_asg" {
+    name = "web-asg"
+    vpc_zone_identifier = [aws_subnet.public_subnet_1.id, aws_subnet.public_subnet_2.id]
+    target_group_arns = [aws_lb_target_group.web_tg.arn]
+
+    min_size = 2
+    max_size = 5
+    desired_capacity = 2
+
+    force_delete = true
+    health_check_type = "ELB"
+    health_check_grace_period = 300
+
+    launch_template {
+        id = aws_launch_template.web_template.id
+        version = "$Latest"
+    }
+
+    lifecycle {
+        create_before_destroy = true
+    }
+}
